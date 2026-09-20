@@ -8,11 +8,17 @@
 	"files": {
 		"ignoreUnknown": false,
 		"includes": [
-			"./src/**/*.ts",
-			"./src/**/*.tsx",
-			"./src/**/*.js",
-			"./src/**/*.jsx",
-			"./src/**/*.md"
+			"./app/**",
+			"./components/**",
+			"./lib/**",
+			"./scripts/**",
+			"./tests/**",
+			"./*.mjs",
+			"./*.ts",
+			"./README.md",
+			"!**/lib/three",
+			"!**/globals.css",
+			"!**/next-env.d.ts"
 		]
 	},
 	"formatter": {
