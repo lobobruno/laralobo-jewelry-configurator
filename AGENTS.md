@@ -102,8 +102,10 @@ code, **prefer existing conventions**.
 
 - Use `pnpm` only (never npm). The repo pins `pnpm@10.33.2`.
 - Ask the user before installing packages.
-- Run `pnpm typecheck` after changing code, and `pnpm build` before calling a task
-  done. Do **not** put `pnpm lint` in that loop yet — see "Known traps".
+- Always run `pnpm validate` after finishing any job. A job is never done until
+  validation passes; fix reported errors and rerun it before claiming completion.
+  Also run `pnpm build` for code changes. Do **not** put `pnpm lint` in that loop
+  yet — see "Known traps".
 - Use Tailwind utilities in components. Keep `app/globals.css` limited to Tailwind
   imports, theme tokens, and shared base defaults. Preserve the current design.
 - Never edit `lib/three/vendor/` or the sibling `../atelie-mvp/` — see
@@ -113,14 +115,17 @@ code, **prefer existing conventions**.
 
 ```
 pnpm dev        # next dev on 0.0.0.0:3000 (Turbopack, output in .next/dev)
-pnpm build      # production build — the real gate, run it before claiming done
+pnpm build      # production build — required for code changes
 pnpm start      # serve the production build
 pnpm typecheck  # tsc --noEmit
+pnpm validate   # mandatory completion gate: typecheck + type export conventions
 pnpm test       # node tests/migration.test.mjs
 pnpm lint       # see "Known traps" — currently checks nothing and exits 1
 ```
 
-`pnpm build` and `pnpm typecheck` are the checks that actually cover this codebase.
+`pnpm validate` must pass before every job is complete. It includes
+`pnpm typecheck` and `pnpm check:types`; exported shared types belong in
+`lib/types/`. Code changes must also pass `pnpm build`.
 
 ## Where Next 16 will trip you up
 
@@ -260,9 +265,9 @@ not trust the tools they break:
   quotes, so the first successful run would rewrite every file against the house
   style above. Align the Biome formatter with the existing style before widening
   the globs. Its `nursery/useSortedClasses` rule can sort Tailwind utilities.
-- `.husky/pre-commit` runs `pnpm lint` and `pnpm validate`. `lint` exits 1 and there
-  is no `validate` script in `package.json`, so the hook blocks every commit as it
-  stands.
+- `.husky/pre-commit` runs `pnpm lint` and `pnpm validate`. The validate script
+  exists and is required independently of the hook; the lint issues described
+  above may still block commits.
 - ESLint (`eslint.config.mjs`, via `eslint-config-next`) and Biome are both
   configured, and neither is wired into a passing command. Pick one deliberately
   rather than adding a third.
