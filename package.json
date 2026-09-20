@@ -3,10 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
+    "start": "next start --hostname 0.0.0.0",
+    "lint": "eslint app components lib",
+    "typecheck": "tsc --noEmit",
+    "test": "node tests/migration.test.mjs"
   },
   "dependencies": {
     "next": "16.3.5",
@@ -23,5 +25,6 @@
     "tailwindcss": "^4",
     "typescript": "^5"
   },
-  "packageManager": "pnpm@10.33.2"
+  "packageManager": "pnpm@10.33.2",
+  "type": "module"
 }

@@ -1,0 +1,5 @@
+import Link from 'next/link';
+import Image from 'next/image';
+import { collections, photoSource } from '@/lib/collections';
+export const metadata = { title: 'Peças realizadas · Lara Lobo' };
+export default function Portfolio() { return <section className="portfolio"><Link className="gallery-back" href="/">← Voltar ao ateliê</Link><h1>Peças realizadas</h1><p className="gallery-note">Uma seleção do acervo Lara Lobo. Escolha uma categoria para descobrir as peças.</p><div className="gallery-categories">{Object.entries(collections).map(([id, c]) => <Link key={id} className="collection-card" href={`/pecas/${id}`}><Image src={photoSource(c.photos[0][0])} alt={c.photos[0][2]} width={320} height={320}/><span className="collection-caption"><span><strong>{c.name}</strong><small>{c.photos.length} fotos selecionadas</small></span><span>↗</span></span></Link>)}</div><p className="gallery-disclaimer">Peças do acervo. As simulações 3D são estudos visuais e não réplicas destas fotografias.</p></section>; }

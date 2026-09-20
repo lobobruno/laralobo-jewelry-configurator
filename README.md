@@ -1,36 +1,46 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Ateliê Lara Lobo — Next.js + React
 
-## Getting Started
+Migração independente do MVP visual. A pasta `../atelie-mvp` não é alterada.
 
-First, run the development server:
+## Executar
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
+```powershell
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Abra http://localhost:3000. Para acessar na mesma rede, use o IP desta máquina e a porta 3000 (por exemplo, http://192.168.0.9:3000). O servidor usa 0.0.0.0; o firewall precisa permitir a conexão.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Para produção local: `pnpm build` e `pnpm start`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Organização
 
-## Learn More
+- `app/page.tsx`: página do ateliê.
+- `app/pecas/page.jsx`: categorias do acervo.
+- `app/pecas/[category]/page.jsx`: fotos de cada categoria.
+- `app/layout.tsx`: estrutura compartilhada, metadados e idioma.
+- `components/atelier`: estado React, seletores, ícones e visualizador.
+- `components/gallery`: ampliação das fotos, teclado e navegação.
+- `components/layout`: cabeçalho e rodapé.
+- `lib/catalog.js`: opções e descrição da combinação.
+- `lib/collections.js`: curadoria das 20 fotografias.
+- `lib/three/jewelry.js`: construção das joias, contornos, garras e símbolo vazado.
+- `lib/three/viewer.js`: cena, câmera, iluminação, exportação PNG e liberação dos recursos.
+- `lib/three/brand-symbol.js`: contornos originais da página 3 do manual da marca.
+- `lib/three/vendor`: mesma versão local de Three.js e addons do MVP, com licenças preservadas; sem dependência de CDN.
+- `public/assets`: fotografias, marca e seis malhas de gemas copiadas do original.
 
-To learn more about Next.js, take a look at the following resources:
+O Three.js é carregado sob demanda apenas no navegador. A interface usa componentes e estado React, sem iframe ou injeção da aplicação antiga. O estado fica em memória no layout e acompanha a navegação até o acervo. Recarregar a página reinicia as escolhas. Não há banco de dados, acesso administrativo ou autenticação.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verificação
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```powershell
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
-## Deploy on Vercel
+Os testes verificam todas as famílias e lapidações nos extremos de tamanho e com contorno duplo. Também comparam o conteúdo do MVP original com `migration-source-hashes.json`; esse teste requer a pasta irmã original disponível. As proporções do visualizador permanecem ilustrativas.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Skills consultadas em `.agents/skills`: aplicada `vercel-react-best-practices`; as skills de React Native e transições não são necessárias para esta migração. A documentação da versão instalada está em `node_modules/next/dist/docs`.
