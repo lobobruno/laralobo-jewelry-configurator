@@ -1,0 +1,10 @@
+echo "🔍 Running lint..."
+pnpm lint || exit 1
+
+echo "🧠 Running full validation..."
+NODE_OPTIONS="--max-old-space-size=4096" pnpm validate || exit 1
+
+echo "🧪 Running tests..."
+pnpm test || exit 1
+
+echo "✅ All checks passed!"

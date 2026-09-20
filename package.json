@@ -6,22 +6,29 @@
     "dev": "next dev --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0",
-    "lint": "eslint app components lib",
-    "typecheck": "tsc --noEmit",
-    "test": "node tests/migration.test.mjs"
+    "lint": "biome check --write --unsafe ./",
+    "typecheck": "cross-env NODE_OPTIONS=--max-old-space-size=4096 tsc --noEmit",
+    "test": "node tests/migration.test.mjs",
+    "prepare": "husky",
+    "validate": "pnpm typecheck && pnpm check:types",
+    "check:types": "node scripts/check-types.js"
   },
   "dependencies": {
     "next": "16.3.5",
+    "postcss": "^8.5.28",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.14",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
+    "husky": "^9.1.7",
     "tailwindcss": "^4",
     "typescript": "^5"
   },
