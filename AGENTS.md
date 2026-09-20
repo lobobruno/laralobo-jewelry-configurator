@@ -16,6 +16,15 @@ with Three.js. No database, no auth, no API routes — state lives in memory and
 resets on reload. `README.md` (Portuguese) describes the product and every file;
 this file covers what an agent needs that the code does not already say.
 
+## 3D continuity guide — read before changing jewelry
+
+Read [docs/GUIA-3D.md](docs/GUIA-3D.md) before adding or changing gems, cuts,
+ring models, halos, prongs, or the signature basket. It records the user's
+approved design decisions, geometry contracts, extension workflows, reference
+paths, and visual validation checklist so work can continue without chat history.
+Keep it current when those decisions change. Verify scripts and file conventions
+against the current source; older descriptions below may lag user edits.
+
 The block above is genuine and current — `next dev` rewrites it on every start, and
 it is committed, so the tree stays clean. Leave it in place. The Next 16 section
 below is what it points at, already read and filtered down to this project.

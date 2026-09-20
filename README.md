@@ -2,6 +2,12 @@
 
 Migração independente do MVP visual. A pasta `../atelie-mvp` não é alterada.
 
+## Continuidade do projeto 3D
+
+Leia o [Guia de continuidade do 3D](docs/GUIA-3D.md) para adicionar pedras,
+lapidações ou modelos de anel. Ele registra a arquitetura, as decisões de design
+aprovadas, as referências e os passos de validação, sem depender do histórico da conversa.
+
 ## Executar
 
 ```powershell
