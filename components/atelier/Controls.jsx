@@ -71,17 +71,19 @@ function ModelSection({ step, state, choose }) {
 function MetalSection({ step, state, choose }) {
 	return (
 		<Section step={step} label="O metal" extra="18k">
-			<div className="metal-options">
+			<div className="grid grid-cols-3 gap-[7px]">
 				{Object.entries(metals).map(([id, metal]) => (
 					<Choice
 						key={id}
-						variant="metal-option"
+						variant="flex flex-col items-center gap-2 rounded-sm border border-transparent px-px pt-[9px] pb-[7px] text-[13px] aria-pressed:border-[#b8bcae] aria-pressed:bg-[#f0f0e9] [&[aria-pressed=true]_i]:outline [&[aria-pressed=true]_i]:outline-[#6f795c] [&[aria-pressed=true]_i]:outline-offset-[3px] max-[1050px]:text-[12px]"
 						field="metal"
 						value={id}
 						state={state}
 						choose={choose}
 					>
-						<i className="swatch" style={{ background: metal.css }} />
+						<i
+							className={`inline-block size-7 rounded-full shadow-[inset_0_0_0_1px_#00000018,0_2px_3px_#0000000c] ${metal.swatchClass}`}
+						/>
 						{metal.label}
 					</Choice>
 				))}
@@ -93,11 +95,11 @@ function MetalSection({ step, state, choose }) {
 function CutSection({ step, state, choose }) {
 	return (
 		<Section step={step} label="A lapidação">
-			<div className="options">
+			<div className="flex flex-wrap gap-[7px]">
 				{Object.entries(cuts).map(([id, label]) => (
 					<Choice
 						key={id}
-						variant="shape-option"
+						variant="flex min-w-10 flex-1 flex-col items-center gap-[7px] rounded-sm border border-transparent px-px pt-[7px] pb-1.5 text-[12px] text-[#6b7464] aria-pressed:border-[#a6ae96] aria-pressed:bg-[#f0f1ea] [&_svg]:size-7 [&_svg]:fill-none [&_svg]:stroke-current [&_svg]:stroke-[.8] max-[760px]:[&_svg]:size-8"
 						field="cut"
 						value={id}
 						state={state}
@@ -115,22 +117,24 @@ function CutSection({ step, state, choose }) {
 function StoneSection({ step, state, choose }) {
 	return (
 		<Section step={step} label="A pedra">
-			<div className="stone-selector">
+			<div className="flex items-center gap-2">
 				{Object.entries(stones).map(([id, stone]) => (
 					<Choice
 						key={id}
-						variant="stone-dot"
+						variant="size-[35px] rounded-full border border-transparent p-1 aria-pressed:border-[#62734b] [&_i]:block [&_i]:size-[25px] [&_i]:rounded-full [&_i]:border [&_i]:border-[#0002]"
 						field="stone"
 						value={id}
 						name={stone.name}
 						state={state}
 						choose={choose}
 					>
-						<i style={{ background: stone.swatch }} />
+						<i className={stone.swatchClass} />
 					</Choice>
 				))}
 			</div>
-			<p className="stone-name">{stones[state.stone].name}</p>
+			<p className="mt-2.5 mb-0 text-[#666f5c] text-[12px]">
+				{stones[state.stone].name}
+			</p>
 		</Section>
 	)
 }
@@ -169,7 +173,7 @@ function DetailsSection({ step, state, choose }) {
 				options={BAND_STYLES}
 				state={state}
 				choose={choose}
-				style={{ marginTop: 8 }}
+				className="mt-2"
 			/>
 		</Section>
 	)
@@ -208,10 +212,12 @@ function FinishSection({ step, state, choose }) {
 
 function Section({ step, label, extra, children }) {
 	return (
-		<section className="control-section">
-			<div className="section-label">
+		<section className="border-line border-b py-4 max-[760px]:py-[19px] min-[1450px]:py-[18px]">
+			<div className="mb-3 flex items-center justify-between font-medium text-[14px] [&>small]:font-normal [&>small]:text-[#838677] [&>small]:text-[11px] [&>span:first-child]:flex [&>span:first-child]:gap-2.5">
 				<span>
-					<span className="step">{String(step).padStart(2, "0")}</span>
+					<span className="pt-0.5 text-[#a3a693] text-[11px]">
+						{String(step).padStart(2, "0")}
+					</span>
 					{label}
 				</span>
 				{extra && <small>{extra}</small>}
@@ -222,9 +228,9 @@ function Section({ step, label, extra, children }) {
 }
 
 /** A row of plain text buttons, one per entry of an `{ value: label }` record. */
-function OptionRow({ field, options, state, choose, style }) {
+function OptionRow({ field, options, state, choose, className = "" }) {
 	return (
-		<div className="options" style={style}>
+		<div className={`flex flex-wrap gap-[7px] ${className}`}>
 			{Object.entries(options).map(([value, label]) => (
 				<Choice
 					key={value}
@@ -241,11 +247,11 @@ function OptionRow({ field, options, state, choose, style }) {
 }
 
 /**
- * One selectable value of `field`. `variant` is the CSS class that styles it;
+ * One selectable value of `field`. `variant` contains the Tailwind utilities that style it;
  * `name` labels buttons whose content is purely visual, such as the stone dots.
  */
 function Choice({
-	variant = "option",
+	variant = "min-h-[39px] flex-1 rounded-sm border border-[#dfe1d6] bg-[#ffffff88] px-[13px] py-2.5 text-[13px] whitespace-nowrap aria-pressed:border-[#626e55] aria-pressed:bg-[#ebeee5] aria-pressed:text-[#34402d] aria-pressed:shadow-[inset_0_0_0_.5px_#626e55]",
 	field,
 	value,
 	state,
@@ -257,7 +263,7 @@ function Choice({
 	return (
 		<button
 			type="button"
-			className={active ? `${variant} active` : variant}
+			className={variant}
 			aria-pressed={active}
 			aria-label={name}
 			title={name}
@@ -282,12 +288,13 @@ function Slider({
 }) {
 	return (
 		<>
-			<div className="size-line">
+			<div className="mb-[5px] flex justify-between gap-2.5 [&_small]:text-[#878a7b] [&_small]:text-[11px] [&_strong]:font-medium [&_strong]:text-[14px]">
 				<strong>{readout}</strong>
 				{note && <small>{note}</small>}
 			</div>
 			<input
 				type="range"
+				className="h-[18px] w-full cursor-pointer accent-[#556342]"
 				min={min}
 				max={max}
 				step={1}
@@ -296,7 +303,7 @@ function Slider({
 				aria-valuetext={ariaValueText}
 				onChange={(event) => onChange(Number(event.target.value))}
 			/>
-			<div className="range-labels">
+			<div className="flex justify-between text-[#8b8d82] text-[10px]">
 				{ticks.map((tick) => (
 					<span key={tick}>{tick}</span>
 				))}

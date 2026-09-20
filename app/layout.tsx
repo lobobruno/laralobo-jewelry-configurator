@@ -18,12 +18,12 @@ export default function RootLayout({
 }) {
 	return (
 		<html lang="pt-BR">
-			<body>
+			<body className="bg-[#fcfbf8] font-sans text-[#303c32] [font-synthesis:none]">
 				{/* The provider sits above the router, so a piece being configured
                     survives a detour through the portfolio and back. */}
 				<ConfigurationProvider>
 					<Header />
-					<main>
+					<main className="mx-auto max-w-[1700px] px-[4.4%] max-[1050px]:px-[3%] max-[760px]:px-[5%]">
 						{children}
 						<Footer />
 					</main>

@@ -95,8 +95,8 @@ code, **prefer existing conventions**.
 - Ask the user before installing packages.
 - Run `pnpm typecheck` after changing code, and `pnpm build` before calling a task
   done. Do **not** put `pnpm lint` in that loop yet — see "Known traps".
-- No Tailwind and no CSS-in-JS here: extend `app/globals.css` with semantic class
-  names, matching the file's existing style.
+- Use Tailwind utilities in components. Keep `app/globals.css` limited to Tailwind
+  imports, theme tokens, and shared base defaults. Preserve the current design.
 - Never edit `lib/three/vendor/` or the sibling `../atelie-mvp/` — see
   "Do not touch".
 
@@ -174,10 +174,8 @@ the floor is Node 20.9+, TypeScript 5.1+, Chrome/Edge/Firefox 111+, Safari 16.4+
 - **Three.js is browser-only** and loaded on demand from `lib/three/viewer.js`.
   Never import it at module scope in a server component. Dispose geometries and
   materials you create; `tests/migration.test.mjs` asserts that contract.
-- **There is no Tailwind in this project**, despite the dependency.
-  `app/globals.css` is hand-written CSS with semantic class names (`.viewer`,
-  `.control-section`, `.gallery-photo`) and never imports Tailwind. Style with
-  those, not utilities.
+- **Tailwind CSS v4** provides component styling through utility classes.
+  Keep full utility names in source so Tailwind can discover them.
 - Copy in Portuguese (`lang="pt-BR"`), code and comments in English.
 
 ### Server and Client Components
@@ -252,8 +250,7 @@ not trust the tools they break:
   `biome check --write --unsafe` and Biome is configured for tabs and double
   quotes, so the first successful run would rewrite every file against the house
   style above. Align the Biome formatter with the existing style before widening
-  the globs. Its `nursery/useSortedClasses` rule is dead weight either way — there
-  are no Tailwind classes to sort.
+  the globs. Its `nursery/useSortedClasses` rule can sort Tailwind utilities.
 - `.husky/pre-commit` runs `pnpm lint` and `pnpm validate`. `lint` exits 1 and there
   is no `validate` script in `package.json`, so the hook blocks every commit as it
   stands.

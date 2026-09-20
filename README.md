@@ -44,3 +44,7 @@ pnpm build
 Os testes verificam todas as famílias e lapidações nos extremos de tamanho e com contorno duplo. Também comparam o conteúdo do MVP original com `migration-source-hashes.json`; esse teste requer a pasta irmã original disponível. As proporções do visualizador permanecem ilustrativas.
 
 Skills consultadas em `.agents/skills`: aplicada `vercel-react-best-practices`; as skills de React Native e transições não são necessárias para esta migração. A documentação da versão instalada está em `node_modules/next/dist/docs`.
+
+### Estilos
+
+Os componentes usam utilitários Tailwind CSS v4, incluindo estados de seleção e regras responsivas. `app/globals.css` concentra somente imports, tokens de tema e padrões globais mínimos. O Preflight foi omitido para preservar as medidas nativas de controles e a aparência existente. As amostras de metais e gemas usam classes completas em `lib/catalog.js`.

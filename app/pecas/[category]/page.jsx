@@ -15,12 +15,14 @@ export default async function CollectionPage({ params }) {
 	const collection = collections[category]
 
 	return (
-		<section className="portfolio">
-			<Link className="gallery-back" href="/pecas">
+		<section className="mx-auto max-w-[1000px] pt-8 [&_h1]:my-5">
+			<Link className="py-2.5 text-[14px]" href="/pecas">
 				← Todas as categorias
 			</Link>
 			<h1>{collection.name}</h1>
-			<p className="gallery-note">{collection.description}</p>
+			<p className="mt-0 mb-6 max-w-[700px] text-[#747d6c] text-[15px] leading-[1.6] max-[650px]:text-[14px] [&_span]:whitespace-nowrap">
+				{collection.description}
+			</p>
 			<PhotoGallery collection={collection} />
 			<GalleryDisclaimer />
 		</section>
