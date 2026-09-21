@@ -109,6 +109,8 @@ export default function RingSizer() {
 				? calibrationHeading.current
 				: null
 		if (heading) {
+			// Keep the reading position accessible; heading-only styles suppress
+			// Safari's default focus ring without changing interactive controls.
 			heading.focus({ preventScroll: true })
 			heading.scrollIntoView({ block: "start", behavior: "instant" })
 		}
@@ -244,7 +246,7 @@ export default function RingSizer() {
 					<h2
 						ref={calibrationHeading}
 						tabIndex={-1}
-						className="scroll-mt-4"
+						className="scroll-mt-4 focus:outline-none"
 						id="calibration-title"
 					>
 						Calibre sua tela
@@ -352,7 +354,7 @@ export default function RingSizer() {
 						<h2
 							ref={measurementHeading}
 							tabIndex={-1}
-							className="scroll-mt-4"
+							className="scroll-mt-4 focus:outline-none"
 							id="measurement-title"
 						>
 							Encontre o encaixe
