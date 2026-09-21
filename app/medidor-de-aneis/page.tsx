@@ -10,19 +10,18 @@ export const metadata: Metadata = {
 
 export default function RingSizingPage() {
 	return (
-		<section className="mx-auto max-w-[1100px] py-8 sm:py-12">
+		<section className="mx-auto max-w-[1100px] pt-3 pb-8 sm:py-12">
 			<Link href="/" className="inline-block py-2 text-sm hover:underline">
 				← Voltar ao ateliê
 			</Link>
-			<p className="mt-6 mb-3 text-green text-sm tracking-[.16em]">
+			<p className="mt-3 mb-2 text-green text-sm tracking-[.16em] sm:mt-6">
 				GUIA DE MEDIDAS
 			</p>
-			<h1>
+			<h1 className="max-sm:text-[34px]">
 				Seu anel, <em>na medida.</em>
 			</h1>
-			<p className="mb-8 max-w-[650px] text-[#5d685e] text-base leading-relaxed">
-				Use um anel que já fica confortável no dedo desejado. Uma régua e dois
-				passos ajudam você a descobrir o aro.
+			<p className="mb-5 max-w-[650px] text-[#5d685e] text-base leading-relaxed sm:mb-8">
+				Separe uma régua e um anel que fica confortável no dedo desejado.
 			</p>
 			<RingSizer />
 		</section>

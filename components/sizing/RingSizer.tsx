@@ -8,7 +8,60 @@ const format = new Intl.NumberFormat("pt-BR", {
 	maximumFractionDigits: 2,
 })
 const control =
-	"size-11 shrink-0 rounded-full border border-solid border-[#c6cebf] bg-white text-xl hover:bg-[#edf1e9] disabled:opacity-40"
+	"size-12 shrink-0 touch-none select-none [-webkit-user-select:none] [-webkit-touch-callout:none] rounded-full border border-solid border-[#c6cebf] bg-white text-xl hover:bg-[#edf1e9] active:bg-[#dce8dc] disabled:opacity-40"
+const rangeControl = "m-0 h-12 w-full min-w-0 touch-pan-y appearance-none bg-transparent accent-[#104735] disabled:opacity-40 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-[#dce2d8] [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-solid [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#104735] [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-[#dce2d8] [&::-moz-range-thumb]:size-[22px] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-solid [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#104735]"
+
+function DiameterButton({ disabled, direction, onStep }: {
+	disabled: boolean
+	direction: -1 | 1
+	onStep: (direction: -1 | 1) => void
+}) {
+	const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const repeated = useRef(false)
+	function stop() {
+		if (timer.current !== null) clearTimeout(timer.current)
+		timer.current = null
+	}
+	useEffect(() => {
+		if (disabled) stop()
+	}, [disabled])
+	useEffect(() => {
+		window.addEventListener("blur", stop)
+		document.addEventListener("visibilitychange", stop)
+		return () => {
+			stop()
+			window.removeEventListener("blur", stop)
+			document.removeEventListener("visibilitychange", stop)
+		}
+	}, [])
+	return <button
+		type="button"
+		className={control}
+		aria-label={direction === 1 ? "Aumentar diâmetro em 0,05 milímetro" : "Diminuir diâmetro em 0,05 milímetro"}
+		disabled={disabled}
+		onContextMenu={event => event.preventDefault()}
+		onPointerDown={event => {
+			if (event.button !== 0 || !event.isPrimary) return
+			stop()
+			repeated.current = false
+			event.currentTarget.setPointerCapture(event.pointerId)
+			const repeat = () => {
+				repeated.current = true
+				onStep(direction)
+				timer.current = setTimeout(repeat, 80)
+			}
+			timer.current = setTimeout(repeat, 350)
+		}}
+		onPointerUp={stop}
+		onPointerCancel={() => { repeated.current = true; stop() }}
+		onLostPointerCapture={stop}
+		onBlur={stop}
+		onClick={event => {
+			if (event.detail === 0 || !repeated.current) onStep(direction)
+			repeated.current = false
+		}}
+	>{direction === 1 ? "+" : "−"}</button>
+}
 
 export default function RingSizer() {
 	const [referenceWidth, setReferenceWidth] = useState(76)
@@ -20,9 +73,20 @@ export default function RingSizer() {
 		label?: string
 	}>({ status: "checking" })
 	const manuallyAdjusted = useRef(false)
+	const measurementHeading = useRef<HTMLHeadingElement>(null)
+	const calibrationHeading = useRef<HTMLHeadingElement>(null)
 	const pixelsPerMm = referenceWidth / 20
 	// ABNT reference: internal circumference in millimetres minus 40.
 	const ringSize = Math.round(Math.PI * diameter - 40)
+
+	useEffect(() => {
+		if (!window.matchMedia("(max-width: 767px)").matches) return
+		const heading = calibrated ? measurementHeading.current : invalidated ? calibrationHeading.current : null
+		if (heading) {
+			heading.focus({ preventScroll: true })
+			heading.scrollIntoView({ block: "start", behavior: "instant" })
+		}
+	}, [calibrated, invalidated])
 
 	useEffect(() => {
 		let cancelled = false
@@ -100,16 +164,23 @@ export default function RingSizer() {
 	function adjustDiameter(value: number) {
 		setDiameter(Math.min(25, Math.max(13, Math.round(value * 20) / 20)))
 	}
+	function stepDiameter(direction: -1 | 1) {
+		setDiameter(value => Math.min(25, Math.max(13, Math.round(value * 20 + direction) / 20)))
+	}
 
 	return (
 		<div>
 			<div className="grid items-start gap-6 md:grid-cols-[.9fr_1.1fr]">
+				{calibrated && <div className="flex items-center justify-between gap-3 rounded-lg border border-line border-solid bg-white px-4 py-2 text-sm md:hidden">
+					<span className="text-green">✓ Tela calibrada</span>
+					<button type="button" className="min-h-12 px-2 underline underline-offset-4" onClick={() => { setInvalidated(true); setCalibrated(false) }}>Recalibrar</button>
+				</div>}
 				<section
 					aria-labelledby="calibration-title"
-					className="rounded-lg border border-line border-solid bg-white p-5 sm:p-8"
+					className={`${calibrated ? "hidden md:block " : ""}rounded-lg border border-line border-solid bg-white p-4 sm:p-8`}
 				>
 					<p className="m-0 text-[#766442] text-sm tracking-widest">PASSO 01</p>
-					<h2 id="calibration-title">Calibre sua tela</h2>
+					<h2 ref={calibrationHeading} tabIndex={-1} className="scroll-mt-4" id="calibration-title">Calibre sua tela</h2>
 					<p
 						role="status"
 						className="border-[#a59b53] border-y-0 border-r-0 border-l-2 border-solid pl-3 text-[#5d685e] text-sm leading-relaxed"
@@ -173,7 +244,7 @@ export default function RingSizer() {
 							onChange={(event) => adjustReference(Number(event.target.value))}
 							aria-describedby="calibration-help"
 							aria-valuetext="Ajuste até a linha medir dois centímetros na sua régua"
-							className="m-0 h-11 w-full min-w-0 accent-[#104735]"
+							className={rangeControl}
 						/>
 						<button
 							type="button"
@@ -213,14 +284,12 @@ export default function RingSizer() {
 					className="min-w-0 rounded-lg border border-line border-solid bg-white p-4 sm:p-8"
 				>
 					<p className="m-0 text-[#766442] text-sm tracking-widest">PASSO 02</p>
-					<h2 id="measurement-title">Encontre o encaixe</h2>
+					<h2 ref={measurementHeading} tabIndex={-1} className="scroll-mt-4" id="measurement-title">Encontre o encaixe</h2>
 					<p id="ring-help" className="text-base leading-relaxed">
-						Apoie seu anel sobre o círculo. Ajuste até a{" "}
-						<strong>borda externa da linha verde</strong> coincidir com a borda
-						interna do anel, sem incluir o metal.
+						Apoie o anel na tela. Faça a <strong>borda externa da linha verde</strong> coincidir com a parte interna do anel, sem incluir o metal.
 					</p>
 					<div
-						className="relative flex min-h-[280px] items-center justify-center rounded-md bg-[#f7f7f1]"
+						className="relative flex min-h-[220px] select-none items-center justify-center rounded-md bg-[#f7f7f1] py-4 md:min-h-[280px]"
 						aria-label={
 							calibrated
 								? `Círculo com diâmetro interno de ${format.format(diameter)} milímetros`
@@ -253,15 +322,11 @@ export default function RingSizer() {
 						Diâmetro do círculo
 					</label>
 					<div className="flex items-center gap-3">
-						<button
-							type="button"
-							className={control}
-							aria-label="Diminuir diâmetro em 0,05 milímetro"
+						<DiameterButton
+							direction={-1}
 							disabled={!calibrated || diameter <= 13}
-							onClick={() => adjustDiameter(diameter - 0.05)}
-						>
-							−
-						</button>
+							onStep={stepDiameter}
+						/>
 						<input
 							id="ring-diameter"
 							type="range"
@@ -273,22 +338,18 @@ export default function RingSizer() {
 							onChange={(event) => adjustDiameter(Number(event.target.value))}
 							aria-describedby="ring-help"
 							aria-valuetext={`${format.format(diameter)} milímetros`}
-							className="m-0 h-11 w-full min-w-0 accent-[#104735] disabled:opacity-40"
+							className={rangeControl}
 						/>
-						<button
-							type="button"
-							className={control}
-							aria-label="Aumentar diâmetro em 0,05 milímetro"
+						<DiameterButton
+							direction={1}
 							disabled={!calibrated || diameter >= 25}
-							onClick={() => adjustDiameter(diameter + 0.05)}
-						>
-							+
-						</button>
+							onStep={stepDiameter}
+						/>
 					</div>
 					<div
 						aria-live="polite"
 						aria-atomic="true"
-						className="mt-5 rounded-md bg-[#104735] p-5 text-[#f8f6ee]"
+						className="mt-4 rounded-md bg-[#104735] p-4 text-[#f8f6ee] sm:p-5"
 					>
 						<p className="m-0 text-sm">
 							{calibrated
@@ -296,7 +357,7 @@ export default function RingSizer() {
 								: "Seu resultado aparece após a calibração"}
 						</p>
 						{calibrated ? (
-							<div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+							<div className="mt-2 flex flex-wrap items-center justify-between gap-3">
 								<strong className="font-display font-normal text-5xl">
 									{ringSize}
 								</strong>
@@ -313,8 +374,7 @@ export default function RingSizer() {
 						)}
 					</div>
 					<p className="mb-0 text-[#5d685e] text-sm leading-relaxed">
-						Use + e − para um ajuste fino. Se o anel não se encaixar entre 13 e
-						25 mm, peça uma medição ao ateliê.
+						Toque em + ou − para ajustar. Segure para continuar.
 					</p>
 				</section>
 			</div>
@@ -323,6 +383,7 @@ export default function RingSizer() {
 				confirme o diâmetro em milímetros e o tamanho com o ateliê antes de
 				encomendar. Use um anel redondo, sem deformações, e apoie-o com cuidado
 				para não riscar a tela.
+				{" "}Se o anel não se encaixar entre 13 e 25 mm, peça uma medição ao ateliê.
 			</p>
 		</div>
 	)
