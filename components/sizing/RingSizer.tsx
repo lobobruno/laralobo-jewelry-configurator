@@ -1,6 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+	type PointerEvent,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from "react"
 import { estimateScreenScale, readDeviceModel } from "@/lib/screen-calibration"
 
 const format = new Intl.NumberFormat("pt-BR", {
@@ -189,6 +195,18 @@ export default function RingSizer() {
 			Math.min(25, Math.max(13, Math.round(value * 20 + direction) / 20)),
 		)
 	}
+	function dragDiameter(event: PointerEvent<HTMLInputElement>) {
+		const bounds = event.currentTarget.getBoundingClientRect()
+		// Match the 28px thumb's travel, including the inset at each endpoint.
+		const fraction = Math.min(
+			1,
+			Math.max(
+				0,
+				(event.clientX - bounds.left - 14) / Math.max(1, bounds.width - 28),
+			),
+		)
+		adjustDiameter(13 + fraction * 12)
+	}
 
 	return (
 		<div>
@@ -210,7 +228,7 @@ export default function RingSizer() {
 				)}
 				<section
 					aria-labelledby="calibration-title"
-					className={`${calibrated ? "hidden md:block" : ""}rounded-lg border border-line border-solid bg-white p-4 sm:p-8`}
+					className={`${calibrated ? "hidden md:block" : ""} rounded-lg border border-line border-solid bg-white p-4 sm:p-8`}
 				>
 					<p className="m-0 text-[#766442] text-sm tracking-widest">PASSO 01</p>
 					<h2
@@ -225,26 +243,21 @@ export default function RingSizer() {
 						role="status"
 						className="border-[#a59b53] border-y-0 border-r-0 border-l-2 border-solid pl-3 text-[#5d685e] text-sm leading-relaxed"
 					>
-						{automatic.status === "checking" &&
-							"Verificando se há um ajuste inicial para sua tela… Você já pode usar a régua."}
+						{automatic.status === "checking" && "Verificando tela…"}
 						{automatic.status === "suggested" && (
 							<>
 								<strong className="font-medium text-green">
 									{automatic.label}
 								</strong>
 								<br />
-								Aplicamos uma estimativa inicial. Confira os 2 cm com a régua e
-								ajuste se necessário.
+								Ajuste sugerido. Confira com a régua.
 							</>
 						)}
-						{automatic.status === "unavailable" &&
-							"Não foi possível estimar a medida física desta tela. Use a régua para calibrar."}
-						{automatic.status === "manual" &&
-							"Ajuste manual. Confira os 2 cm com a régua antes de confirmar."}
+						{automatic.status === "unavailable" && "Calibração com régua"}
+						{automatic.status === "manual" && "Ajuste manual"}
 					</p>
 					<p id="calibration-help" className="text-base leading-relaxed">
-						Encoste uma régua na tela. Ajuste a linha até a distância entre as
-						duas marcas corresponder a <strong>2 cm na régua</strong>.
+						Ajuste a linha para medir <strong>2 cm na sua régua</strong>.
 					</p>
 					<div
 						className="flex h-24 items-center justify-center rounded-md bg-[#f5f5ef]"
@@ -262,7 +275,7 @@ export default function RingSizer() {
 						</div>
 					</div>
 					<label htmlFor="screen-scale" className="mt-6 mb-2 block text-sm">
-						Ajuste da linha de referência
+						Tamanho da linha
 					</label>
 					<div className="flex items-center gap-3">
 						<button
@@ -314,8 +327,8 @@ export default function RingSizer() {
 						className="mb-0 text-[#5d685e] text-sm leading-relaxed"
 					>
 						{invalidated
-							? "A escala da tela mudou. Confira os 2 cm com a régua e confirme novamente."
-							: "Mantenha o mesmo zoom e a mesma tela durante a medição. Se mudar de tela, calibre novamente."}
+							? "Confira os 2 cm e confirme novamente."
+							: "Não altere o zoom após calibrar."}
 					</p>
 				</section>
 
@@ -333,9 +346,8 @@ export default function RingSizer() {
 						Encontre o encaixe
 					</h2>
 					<p id="ring-help" className="text-base leading-relaxed">
-						Apoie o anel na tela. Faça a{" "}
-						<strong>borda externa da linha verde</strong> coincidir com a parte
-						interna do anel, sem incluir o metal.
+						Apoie o anel na tela. Alinhe o contorno verde com a{" "}
+						<strong>borda interna do anel</strong>.
 					</p>
 					<div
 						className="relative flex min-h-[220px] select-none items-center justify-center rounded-md bg-[#f7f7f1] py-4 md:min-h-[280px]"
@@ -384,10 +396,31 @@ export default function RingSizer() {
 							step="0.05"
 							value={diameter}
 							disabled={!calibrated}
+							onPointerDown={(event) => {
+								if (event.button !== 0 || !event.isPrimary) return
+								event.preventDefault()
+								event.currentTarget.focus({ preventScroll: true })
+								event.currentTarget.setPointerCapture(event.pointerId)
+								dragDiameter(event)
+							}}
+							onPointerMove={(event) => {
+								if (event.currentTarget.hasPointerCapture(event.pointerId))
+									dragDiameter(event)
+							}}
+							onPointerUp={(event) => {
+								if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+									dragDiameter(event)
+									event.currentTarget.releasePointerCapture(event.pointerId)
+								}
+							}}
+							onPointerCancel={(event) => {
+								if (event.currentTarget.hasPointerCapture(event.pointerId))
+									event.currentTarget.releasePointerCapture(event.pointerId)
+							}}
 							onChange={(event) => adjustDiameter(Number(event.target.value))}
 							aria-describedby="ring-help"
 							aria-valuetext={`${format.format(diameter)} milímetros`}
-							className={rangeControl}
+							className={`${rangeControl} touch-none! select-none [-webkit-user-select:none]`}
 						/>
 						<DiameterButton
 							direction={1}
@@ -401,9 +434,7 @@ export default function RingSizer() {
 						className="mt-4 rounded-md bg-[#104735] p-4 text-[#f8f6ee] sm:p-5"
 					>
 						<p className="m-0 text-sm">
-							{calibrated
-								? "Seu aro estimado · referência ABNT"
-								: "Seu resultado aparece após a calibração"}
+							{calibrated ? "Aro estimado · ABNT" : "Calibre a tela para medir"}
 						</p>
 						{calibrated ? (
 							<div className="mt-2 flex flex-wrap items-center justify-between gap-3">
@@ -423,17 +454,20 @@ export default function RingSizer() {
 						)}
 					</div>
 					<p className="mb-0 text-[#5d685e] text-sm leading-relaxed">
-						Toque em + ou − para ajustar. Segure para continuar.
+						Arraste para ajustar. Use + e − para refinar.
 					</p>
 				</section>
 			</div>
-			<p className="mx-auto mt-6 mb-0 max-w-[820px] text-[#5d685e] text-sm leading-relaxed">
-				Esta é uma estimativa. Aros tradicionais podem ter outra numeração:
-				confirme o diâmetro em milímetros e o tamanho com o ateliê antes de
-				encomendar. Use um anel redondo, sem deformações, e apoie-o com cuidado
-				para não riscar a tela. Se o anel não se encaixar entre 13 e 25 mm, peça
-				uma medição ao ateliê.
-			</p>
+			<details className="mx-auto mt-4 max-w-[820px] text-[#5d685e] text-sm leading-relaxed">
+				<summary className="min-h-11 cursor-pointer py-3">
+					Cuidados com a medição
+				</summary>
+				<p>
+					Use um anel redondo, sem deformações, e apoie-o com cuidado para não
+					riscar a tela. A medida é estimada: confirme com o ateliê antes de
+					encomendar. Faixa de medição: 13 a 25 mm.
+				</p>
+			</details>
 		</div>
 	)
 }
