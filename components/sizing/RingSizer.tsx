@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { estimateScreenScale, readDeviceModel } from "@/lib/screen-calibration"
 
 const format = new Intl.NumberFormat("pt-BR", {
@@ -9,22 +9,27 @@ const format = new Intl.NumberFormat("pt-BR", {
 })
 const control =
 	"size-12 shrink-0 touch-none select-none [-webkit-user-select:none] [-webkit-touch-callout:none] rounded-full border border-solid border-[#c6cebf] bg-white text-xl hover:bg-[#edf1e9] active:bg-[#dce8dc] disabled:opacity-40"
-const rangeControl = "m-0 h-12 w-full min-w-0 touch-pan-y appearance-none bg-transparent accent-[#104735] disabled:opacity-40 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-[#dce2d8] [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-solid [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#104735] [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-[#dce2d8] [&::-moz-range-thumb]:size-[22px] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-solid [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#104735]"
+const rangeControl =
+	"m-0 h-12 w-full min-w-0 touch-pan-y appearance-none bg-transparent accent-[#104735] disabled:opacity-40 [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-[#dce2d8] [&::-webkit-slider-thumb]:-mt-[11px] [&::-webkit-slider-thumb]:size-7 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-[3px] [&::-webkit-slider-thumb]:border-solid [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:bg-[#104735] [&::-webkit-slider-thumb]:shadow-md [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-[#dce2d8] [&::-moz-range-thumb]:size-[22px] [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-[3px] [&::-moz-range-thumb]:border-solid [&::-moz-range-thumb]:border-white [&::-moz-range-thumb]:bg-[#104735]"
 
-function DiameterButton({ disabled, direction, onStep }: {
+function DiameterButton({
+	disabled,
+	direction,
+	onStep,
+}: {
 	disabled: boolean
 	direction: -1 | 1
 	onStep: (direction: -1 | 1) => void
 }) {
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
 	const repeated = useRef(false)
-	function stop() {
+	const stop = useCallback(() => {
 		if (timer.current !== null) clearTimeout(timer.current)
 		timer.current = null
-	}
+	}, [])
 	useEffect(() => {
 		if (disabled) stop()
-	}, [disabled])
+	}, [disabled, stop])
 	useEffect(() => {
 		window.addEventListener("blur", stop)
 		document.addEventListener("visibilitychange", stop)
@@ -33,34 +38,45 @@ function DiameterButton({ disabled, direction, onStep }: {
 			window.removeEventListener("blur", stop)
 			document.removeEventListener("visibilitychange", stop)
 		}
-	}, [])
-	return <button
-		type="button"
-		className={control}
-		aria-label={direction === 1 ? "Aumentar diâmetro em 0,05 milímetro" : "Diminuir diâmetro em 0,05 milímetro"}
-		disabled={disabled}
-		onContextMenu={event => event.preventDefault()}
-		onPointerDown={event => {
-			if (event.button !== 0 || !event.isPrimary) return
-			stop()
-			repeated.current = false
-			event.currentTarget.setPointerCapture(event.pointerId)
-			const repeat = () => {
-				repeated.current = true
-				onStep(direction)
-				timer.current = setTimeout(repeat, 80)
+	}, [stop])
+	return (
+		<button
+			type="button"
+			className={control}
+			aria-label={
+				direction === 1
+					? "Aumentar diâmetro em 0,05 milímetro"
+					: "Diminuir diâmetro em 0,05 milímetro"
 			}
-			timer.current = setTimeout(repeat, 350)
-		}}
-		onPointerUp={stop}
-		onPointerCancel={() => { repeated.current = true; stop() }}
-		onLostPointerCapture={stop}
-		onBlur={stop}
-		onClick={event => {
-			if (event.detail === 0 || !repeated.current) onStep(direction)
-			repeated.current = false
-		}}
-	>{direction === 1 ? "+" : "−"}</button>
+			disabled={disabled}
+			onContextMenu={(event) => event.preventDefault()}
+			onPointerDown={(event) => {
+				if (event.button !== 0 || !event.isPrimary) return
+				stop()
+				repeated.current = false
+				event.currentTarget.setPointerCapture(event.pointerId)
+				const repeat = () => {
+					repeated.current = true
+					onStep(direction)
+					timer.current = setTimeout(repeat, 80)
+				}
+				timer.current = setTimeout(repeat, 350)
+			}}
+			onPointerUp={stop}
+			onPointerCancel={() => {
+				repeated.current = true
+				stop()
+			}}
+			onLostPointerCapture={stop}
+			onBlur={stop}
+			onClick={(event) => {
+				if (event.detail === 0 || !repeated.current) onStep(direction)
+				repeated.current = false
+			}}
+		>
+			{direction === 1 ? "+" : "−"}
+		</button>
+	)
 }
 
 export default function RingSizer() {
@@ -81,7 +97,11 @@ export default function RingSizer() {
 
 	useEffect(() => {
 		if (!window.matchMedia("(max-width: 767px)").matches) return
-		const heading = calibrated ? measurementHeading.current : invalidated ? calibrationHeading.current : null
+		const heading = calibrated
+			? measurementHeading.current
+			: invalidated
+				? calibrationHeading.current
+				: null
 		if (heading) {
 			heading.focus({ preventScroll: true })
 			heading.scrollIntoView({ block: "start", behavior: "instant" })
@@ -165,22 +185,42 @@ export default function RingSizer() {
 		setDiameter(Math.min(25, Math.max(13, Math.round(value * 20) / 20)))
 	}
 	function stepDiameter(direction: -1 | 1) {
-		setDiameter(value => Math.min(25, Math.max(13, Math.round(value * 20 + direction) / 20)))
+		setDiameter((value) =>
+			Math.min(25, Math.max(13, Math.round(value * 20 + direction) / 20)),
+		)
 	}
 
 	return (
 		<div>
 			<div className="grid items-start gap-6 md:grid-cols-[.9fr_1.1fr]">
-				{calibrated && <div className="flex items-center justify-between gap-3 rounded-lg border border-line border-solid bg-white px-4 py-2 text-sm md:hidden">
-					<span className="text-green">✓ Tela calibrada</span>
-					<button type="button" className="min-h-12 px-2 underline underline-offset-4" onClick={() => { setInvalidated(true); setCalibrated(false) }}>Recalibrar</button>
-				</div>}
+				{calibrated && (
+					<div className="flex items-center justify-between gap-3 rounded-lg border border-line border-solid bg-white px-4 py-2 text-sm md:hidden">
+						<span className="text-green">✓ Tela calibrada</span>
+						<button
+							type="button"
+							className="min-h-12 px-2 underline underline-offset-4"
+							onClick={() => {
+								setInvalidated(true)
+								setCalibrated(false)
+							}}
+						>
+							Recalibrar
+						</button>
+					</div>
+				)}
 				<section
 					aria-labelledby="calibration-title"
-					className={`${calibrated ? "hidden md:block " : ""}rounded-lg border border-line border-solid bg-white p-4 sm:p-8`}
+					className={`${calibrated ? "hidden md:block" : ""}rounded-lg border border-line border-solid bg-white p-4 sm:p-8`}
 				>
 					<p className="m-0 text-[#766442] text-sm tracking-widest">PASSO 01</p>
-					<h2 ref={calibrationHeading} tabIndex={-1} className="scroll-mt-4" id="calibration-title">Calibre sua tela</h2>
+					<h2
+						ref={calibrationHeading}
+						tabIndex={-1}
+						className="scroll-mt-4"
+						id="calibration-title"
+					>
+						Calibre sua tela
+					</h2>
 					<p
 						role="status"
 						className="border-[#a59b53] border-y-0 border-r-0 border-l-2 border-solid pl-3 text-[#5d685e] text-sm leading-relaxed"
@@ -284,9 +324,18 @@ export default function RingSizer() {
 					className="min-w-0 rounded-lg border border-line border-solid bg-white p-4 sm:p-8"
 				>
 					<p className="m-0 text-[#766442] text-sm tracking-widest">PASSO 02</p>
-					<h2 ref={measurementHeading} tabIndex={-1} className="scroll-mt-4" id="measurement-title">Encontre o encaixe</h2>
+					<h2
+						ref={measurementHeading}
+						tabIndex={-1}
+						className="scroll-mt-4"
+						id="measurement-title"
+					>
+						Encontre o encaixe
+					</h2>
 					<p id="ring-help" className="text-base leading-relaxed">
-						Apoie o anel na tela. Faça a <strong>borda externa da linha verde</strong> coincidir com a parte interna do anel, sem incluir o metal.
+						Apoie o anel na tela. Faça a{" "}
+						<strong>borda externa da linha verde</strong> coincidir com a parte
+						interna do anel, sem incluir o metal.
 					</p>
 					<div
 						className="relative flex min-h-[220px] select-none items-center justify-center rounded-md bg-[#f7f7f1] py-4 md:min-h-[280px]"
@@ -382,8 +431,8 @@ export default function RingSizer() {
 				Esta é uma estimativa. Aros tradicionais podem ter outra numeração:
 				confirme o diâmetro em milímetros e o tamanho com o ateliê antes de
 				encomendar. Use um anel redondo, sem deformações, e apoie-o com cuidado
-				para não riscar a tela.
-				{" "}Se o anel não se encaixar entre 13 e 25 mm, peça uma medição ao ateliê.
+				para não riscar a tela. Se o anel não se encaixar entre 13 e 25 mm, peça
+				uma medição ao ateliê.
 			</p>
 		</div>
 	)
