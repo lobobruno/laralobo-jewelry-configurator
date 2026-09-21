@@ -8,10 +8,13 @@ The outside edge of the thin circle outline represents the internal diameter.
 
 Browser screen dimensions are CSS pixels, not millimetres. Pixel ratio is not
 physical PPI. Device hints may expose an Android model, but Safari does not offer
-an exact iPhone model. We therefore suggest an initial scale only for the finite
-display profiles in `lib/screen-calibration.ts`; we never mark it calibrated.
-The customer must still confirm the 20 mm reference with a physical ruler.
-Manual adjustments always win over pending device detection.
+an exact iPhone model. The finite display profiles in `lib/screen-calibration.ts`
+provide an estimated scale. As requested by the owner, a matching profile now
+automatically unlocks step 2, with a persistent warning that calibration is
+automatic and a ruler check is recommended. The warning offers manual calibration.
+Unknown devices must confirm the 20 mm reference before step 2 is rendered.
+Manual adjustments always win over pending device detection. Manual confirmation
+removes the automatic warning; invalidation hides step 2 until recalibrated.
 
 Lookup is browser-local, requests only the optional model hint, has a 1.5 second
 deadline, and sends/stores no device data. Missing, denied, unknown, mismatched,
@@ -47,5 +50,5 @@ PPI from a shared resolution. Published dimensions are rounded; verify physical
 accuracy on actual hardware before treating any estimate as automatic calibration.
 
 Checks: `node --experimental-strip-types --test tests/screen-calibration.test.ts`,
-`pnpm typecheck`, `pnpm build`. Browser QA covers the fallback and manual flow;
+`pnpm validate`, `pnpm build`. Browser QA covers the fallback and manual flow;
 pure tests cover device signals. Those tests do not replace physical ruler checks.
